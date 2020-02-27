@@ -18,7 +18,7 @@ SNR=10^(SNRdb/10);
 a=sqrt(SNR_in/SNR); % parameter to adjust SNR to wanted value
 N=a*N;
 
-S_mix=S+N;
+S_mix = S + N;
 
 end
 
