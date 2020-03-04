@@ -103,13 +103,15 @@ for SNRdb = 20; %[-20, -15 , -10, -5, 0, 10, 20];% Escolho as SNRs em dB para se
         %sound(X_estimado,fs)
         
         %% calcula SRMR-CI
-        srmr_noisy(ii) = SRMR_CI_vad(yf, vadall, fs,'norm',1); % score inicial noisy
-        Sx = sum(var(xf,0,2));
-        Sy = sum(var(yf,0,2));
-        srmr_clean(ii) = SRMR_CI_vad(xf*Sy/Sx, vadall, fs,'norm',1); % score inicial noisy
-        Sx = sum(var(X_estimado,0,2)); %MEU
-        srmr_MMSE(ii) = SRMR_CI_vad(X_estimado*Sy/Sx, vadall, fs,'norm',1); %MEU
-        
+        srmr_MMSE(ii) = SRMR_CI_vad(X_estimado, vadall, fs,'norm',1); %MEU
+
+%         srmr_noisy(ii) = SRMR_CI_vad(yf, vadall, fs,'norm',1); % score inicial noisy
+%         Sx = sum(var(xf,0,2));
+%         Sy = sum(var(yf,0,2));
+%         srmr_clean(ii) = SRMR_CI_vad(xf*Sy/Sx, vadall, fs,'norm',1); % score inicial noisy
+%         Sx = sum(var(X_estimado,0,2)); %MEU
+%         srmr_MMSE(ii) = SRMR_CI_vad(X_estimado*Sy/Sx, vadall, fs,'norm',1); %MEU
+%         
      end
     %% Salva arquivos
     path='C:\Users\Lu_Xa\Desktop\Lu1\envFilter\Results\';
