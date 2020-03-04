@@ -1,5 +1,5 @@
-%function mmse(filename,outfile,SPU)
-function [X_estimado] = mmse(y,x,v, fs)
+%function mmse1(filename,outfile,SPU)
+function [X_estimado] = mmse1(y,x,v, fs) % *o arquivo e a funÃ§Ã£o devem ter o mesmo nome
 
 %function [X_estimado] = mmse(y, fs, outfile)
 %
@@ -38,7 +38,7 @@ SPU=1;
 % end
 
 %[x, Srate, bits]= audioread( filename);	%ORIGINAL
-x = y;
+x = y; % * nÃ£o entendi
 Srate = fs;
 
 % =============== Initialize variables ===============
@@ -130,7 +130,7 @@ for n=1:Nframes
     
         C=exp(-0.5*vk);
         A=((c*(vk.^0.5)).*C)./gammak;
-        B=(1+vk).*j0+vk.*j1; %j0 e j1 são as funções modificadas de Bessel de zero e primeira ordem
+        B=(1+vk).*j0+vk.*j1; %j0 e j1 sï¿½o as funï¿½ï¿½es modificadas de Bessel de zero e primeira ordem
         hw=A.*B; 
   
     % --- estimate speech presence probability
