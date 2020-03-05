@@ -1,0 +1,124 @@
+% Experimento envfilter para fala e ruido ICRA (Usado para tese)
+%clearvars; close all; clc 
+
+%%parallel computing settings
+% p = gcp('nocreate'); % If no pool, do not create new one.
+% if isempty(p)
+%     p = parpool(2); % se nao ha pool, cria um com 2 workers
+% %     else
+% %         delete(p);
+% %         clear p;
+% %         p = parpool(2);
+% end
+clc;
+
+%%globals
+%global Lg gamma Lm mu msk
+
+tic;    %starts counting time
+
+%% select noise file
+[v0,fs1] = audioread('C:\Users\Lu_Xa\Desktop\Lu\envFilter\4talker-babble_ISTS.wav'); % Leio o arquivo de ruido, obtenho os dados e a freq de amostragem
+fs=16e3; %frequencia de amostragem que gostaria de ter
+if fs1 ~= fs %se a frequência de amostragem obtida pelo ruido for aprox. da frequencia q quero   
+    v0 = resample(v0(:,1),fs,fs1); % remonto a matriz= remodelo (v0, tam fs, tam fs1)
+else
+    v0 = v0(:,1);
+end
+Lv = length(v0); %tamanho do ruido
+
+%% Input the number of files to be analysed
+%file_num = 720; %são 720 arquivos de voz disponíveis
+
+%% alocate memory and simulations settings
+
+Ljt = 72; %72; %Acho que porque cada arquivo de audio tem 10 parte e são 72 partes
+Lit = 10; %10; 
+file_num = Lit*Ljt;
+nch = 22; %numero de canais do filtro
+
+msenv_MMSE = zeros(nch,file_num);%MEU
+mse_MMSE = zeros(nch,file_num);%MEU
+srmr_noisy = zeros(1,file_num); %Crio matriz para a alocação do ruido,voz e afins-analise SRMR
+srmr_clean = zeros(1,file_num);
+srmr_MMSE = zeros(1,file_num);%MEU
+
+tic
+
+for SNRdb = 20; %[-20, -15 , -10, -5, 0, 10, 20];% Escolho as SNRs em dB para serem analisadas
+    
+    %parfor ii=1:file_num;
+    for ii=1:file_num;
+        j = floor((ii-1)/Lit)+1; %arredonda cada elemento (...) para o número inteiro mais próximo menor ou igual a esse elemento.
+        i = mod((ii-1),Lit)+1; %restante apos a divisao
+        speech_file = sprintf(...
+         'C:/Users/Lu_Xa/Desktop/Lu/CD_Loizou/Databases/Speech/IEEE_corpus/wideband/S_%02d_%02d.wav',j,i); %abro o arquivo com os audios
+        
+        [x,fs1] = audioread(speech_file); %leio os arquivos de audio
+        
+        %% vad e resample
+        %arquivo de texto sil/v/uv
+        phnfile = strcat(speech_file(1:end-3),'phn');%concateno os sinais de voz horizontalmente
+        
+        fid = fopen(phnfile);%obtenho informações sobre os arquivos abertos
+        C = textscan(fid, '%d %d %s');% lê dados de um arquivo de texto. O arquivo de texto é indicado pelo identificador do arquivo fileID
+        fclose(fid);%Feche um ou todos os arquivos abertos
+        
+        idx=find(strncmp('sil',C{3},3));%Encontre valores de elementos diferentes de zero (Compare os primeiros N caracteres das strings)
+        vadall=ones(size(x));
+        for jj=1:length(idx)
+            i1=C{1}(idx(jj));
+            i2=C{2}(idx(jj));
+            vadall(i1:i2)=0;
+        end
+        
+        if fs1 ~= fs
+            x = resample(x,fs,fs1);
+            vadall = abs(resample(vadall,fs,fs1));
+            vadall(vadall~=0) = 1;
+        end
+        x = x/var(x); %OBTENHO O SINAL DE VOZ
+        Ls = length(x); %obtenho o tamanho do sinal de voz
+        
+        %% noise
+        nv=floor(Ls/Lv); %tamanho da fala dividido pelo tamanho do ruido
+        
+        if nv>0
+            rest=mod(Ls,Lv); %resto da divisao
+            v=[repmat(v0,nv,1); 
+            v0(1:rest)];
+            v=v/sqrt(var(v));     %normaliza o a variavel de ruido
+        else
+            dif = Lv-Ls; %se nao faco a diferenca do ruido menos fala
+            i0 = floor(rand(1)*dif)+1;
+            v = v0(i0:i0+Ls-1);
+            v=v/sqrt(var(v));     %normaliza o a variavel de ruido
+        end
+        
+        %% mixed - AQUI MISTURA-SE O SINAL DE FALA COM O RUIDO
+        [y1, v1] = s_and_n(x, v, SNRdb); %speech and noise
+        [yf,xf,vf] = s_and_n_ASL(y1,v1,x,SNRdb,fs); 
+                
+        X_estimado = mmse1(yf,xf,vf,fs); %Fala estimada pelo MMSE
+        %sound(X_estimado,fs)
+        
+        %% calcula SRMR-CI
+        srmr_MMSE(ii) = SRMR_CI_vad(X_estimado, vadall, fs,'norm',1); %MEU
+
+%         srmr_noisy(ii) = SRMR_CI_vad(yf, vadall, fs,'norm',1); % score inicial noisy
+%         Sx = sum(var(xf,0,2));
+%         Sy = sum(var(yf,0,2));
+%         srmr_clean(ii) = SRMR_CI_vad(xf*Sy/Sx, vadall, fs,'norm',1); % score inicial noisy
+%         Sx = sum(var(X_estimado,0,2)); %MEU
+%         srmr_MMSE(ii) = SRMR_CI_vad(X_estimado*Sy/Sx, vadall, fs,'norm',1); %MEU
+%         
+     end
+    %% Salva arquivos
+    path='C:\Users\Lu_Xa\Desktop\Lu1\envFilter\Results\';
+    ck=clock;
+    file=sprintf('Dez_SNR%+ddB.mat',SNRdb);
+    filepath=strcat(path,file);
+    save(filepath,'X_estimado', 'srmr_noisy','srmr_clean', 'srmr_MMSE', '-v7.3')
+end
+
+toc

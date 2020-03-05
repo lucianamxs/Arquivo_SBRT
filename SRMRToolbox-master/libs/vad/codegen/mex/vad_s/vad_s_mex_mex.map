@@ -1,0 +1,10 @@
+MEX {
+	global:
+		mexFunction;
+		emlrtMexFcnProperties;
+		vad_s;
+		vad_s_initialize;
+		vad_s_terminate;
+	local:
+		*;
+};

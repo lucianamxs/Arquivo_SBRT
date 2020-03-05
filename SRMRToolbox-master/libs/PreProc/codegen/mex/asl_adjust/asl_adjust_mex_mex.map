@@ -1,0 +1,10 @@
+MEX {
+	global:
+		mexFunction;
+		emlrtMexFcnProperties;
+		asl_adjust;
+		asl_adjust_initialize;
+		asl_adjust_terminate;
+	local:
+		*;
+};
