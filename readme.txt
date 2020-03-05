@@ -1,4 +1,4 @@
-Databases: Arquivos de audio de FALA (bando do IEEE) e RUIDO;
+Databases: Arquivos de audio de FALA (banco do IEEE) e RUIDO;
 
 Funcoes_auxiliares: Todas as funcoes que foram utilizadas nos scripts;
 
