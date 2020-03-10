@@ -41,7 +41,7 @@ Lv = length(v0); %tamanho do ruido
 
 %% alocate memory and simulations settings
 
-Ljt = 5; %72; %Acho que porque cada arquivo de audio tem 10 parte e são 72 partes
+Ljt = 10; %72; %Acho que porque cada arquivo de audio tem 10 parte e são 72 partes
 Lit = 1; %10; 
 file_num = Lit*Ljt;
 %nch = 22; %numero de canais do filtro
@@ -56,10 +56,10 @@ srmr_MMSE_new = zeros(1,file_num);%MEU
 
 tic
 
-for SNRdb = 2;%[-20, -15 , -10, -5, 0, 10, 20];% Escolho as SNRs em dB para serem analisadas
+for SNRdb = [-20, -15 , -10, -5, 0, 10, 20];% Escolho as SNRs em dB para serem analisadas
     
-    %parfor ii=1:file_num;
-        for ii=1:file_num;
+     parfor ii=1:file_num;
+        %for ii=1:file_num;
         j = floor((ii-1)/Lit)+1; %arredonda cada elemento (...) para o número inteiro mais próximo menor ou igual a esse elemento.
         i = mod((ii-1),Lit)+1; %restante apos a divisao
         
