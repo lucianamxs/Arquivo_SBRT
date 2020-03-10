@@ -4,6 +4,9 @@
 %restore defaut path
 restoredefaultpath;
 
+
+%fullfile
+
 % loads directories to path
 addpath('C:\Users\Lu_Xa\Desktop\Lu2');
 addpath('C:\Users\Lu_Xa\Desktop\Lu2\Funcoes_auxiliares')
